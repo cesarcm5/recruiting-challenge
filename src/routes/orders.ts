@@ -27,18 +27,32 @@ ordersRouter.post('/', (req, res) => {
     customer_email?: string;
     total_amount?: number;
     type?: 'sale' | 'refund';
+    refunded_order_id?: string;
   };
   if (!body.customer_email || typeof body.total_amount !== 'number') {
     res.status(400).json({ error: 'invalid_body' });
     return;
+  }
+  const type = body.type ?? 'sale';
+  if (body.refunded_order_id !== undefined && type !== 'refund') {
+    res.status(400).json({ error: 'refunded_order_id_requires_refund_type' });
+    return;
+  }
+  if (type === 'refund' && body.refunded_order_id) {
+    const original = ordersDal.getById(body.refunded_order_id, req.merchantId!);
+    if (!original) {
+      res.status(400).json({ error: 'refunded_order_not_found' });
+      return;
+    }
   }
   const order = ordersDal.create({
     id: randomUUID(),
     merchant_id: req.merchantId!,
     customer_email: body.customer_email,
     total_amount: body.total_amount,
-    type: body.type ?? 'sale',
+    type,
     status: 'completed',
+    refunded_order_id: body.refunded_order_id ?? null,
   });
   res.status(201).json({ order });
 });

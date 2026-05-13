@@ -1,4 +1,5 @@
 import { db } from '../db.js';
+import { enqueueForOrder } from '../webhooks/enqueue.js';
 
 export interface OrderRow {
   id: string;
@@ -7,6 +8,7 @@ export interface OrderRow {
   total_amount: number;
   type: 'sale' | 'refund';
   status: string;
+  refunded_order_id: string | null;
   created_at: string;
 }
 
@@ -41,12 +43,22 @@ export const ordersDal = {
       .get(id, merchantId) as OrderRow | undefined;
   },
 
-  create(order: Omit<OrderRow, 'created_at'>): OrderRow {
-    db.prepare(
-      `INSERT INTO orders (id, merchant_id, customer_email, total_amount, type, status)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(order.id, order.merchant_id, order.customer_email, order.total_amount, order.type, order.status);
-    return this.getById(order.id, order.merchant_id)!;
+  create(
+    order: Omit<OrderRow, 'created_at' | 'refunded_order_id'> & { refunded_order_id?: string | null },
+  ): OrderRow {
+    const run = db.transaction(
+      (o: Omit<OrderRow, 'created_at' | 'refunded_order_id'> & { refunded_order_id?: string | null }): OrderRow => {
+        db.prepare(
+          `INSERT INTO orders (id, merchant_id, customer_email, total_amount, type, status, refunded_order_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        ).run(o.id, o.merchant_id, o.customer_email, o.total_amount, o.type, o.status, o.refunded_order_id ?? null);
+        const inserted = this.getById(o.id, o.merchant_id)!;
+        const eventType = o.type === 'refund' ? 'order.refunded' : 'order.created';
+        enqueueForOrder(inserted, eventType);
+        return inserted;
+      },
+    );
+    return run(order);
   },
 
   /**
