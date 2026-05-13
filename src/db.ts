@@ -33,12 +33,50 @@ export function initSchema(): void {
 
     CREATE INDEX IF NOT EXISTS idx_orders_merchant ON orders(merchant_id);
     CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
+
+    CREATE TABLE IF NOT EXISTS webhook_subscriptions (
+      id TEXT PRIMARY KEY,
+      merchant_id TEXT NOT NULL REFERENCES merchants(id),
+      url TEXT NOT NULL,
+      secret TEXT NOT NULL,
+      event_types TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_webhook_subs_merchant ON webhook_subscriptions(merchant_id);
+
+    CREATE TABLE IF NOT EXISTS webhook_deliveries (
+      id TEXT PRIMARY KEY,
+      subscription_id TEXT NOT NULL REFERENCES webhook_subscriptions(id),
+      merchant_id TEXT NOT NULL REFERENCES merchants(id),
+      event_type TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      status TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      next_attempt_at TEXT NOT NULL,
+      last_error TEXT,
+      response_status INTEGER,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      delivered_at TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_deliveries_pending
+      ON webhook_deliveries(status, next_attempt_at)
+      WHERE status = 'pending';
   `);
 
-  const cols = db
+  const merchantCols = db
     .prepare(`PRAGMA table_info(merchants)`)
     .all() as Array<{ name: string }>;
-  if (!cols.some((c) => c.name === 'password_hash')) {
+  if (!merchantCols.some((c) => c.name === 'password_hash')) {
     db.exec(`ALTER TABLE merchants ADD COLUMN password_hash TEXT`);
+  }
+
+  const orderCols = db
+    .prepare(`PRAGMA table_info(orders)`)
+    .all() as Array<{ name: string }>;
+  if (!orderCols.some((c) => c.name === 'refunded_order_id')) {
+    db.exec(`ALTER TABLE orders ADD COLUMN refunded_order_id TEXT REFERENCES orders(id)`);
   }
 }
