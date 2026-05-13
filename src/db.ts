@@ -17,6 +17,7 @@ export function initSchema(): void {
     CREATE TABLE IF NOT EXISTS merchants (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
+      password_hash TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -33,4 +34,11 @@ export function initSchema(): void {
     CREATE INDEX IF NOT EXISTS idx_orders_merchant ON orders(merchant_id);
     CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
   `);
+
+  const cols = db
+    .prepare(`PRAGMA table_info(merchants)`)
+    .all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === 'password_hash')) {
+    db.exec(`ALTER TABLE merchants ADD COLUMN password_hash TEXT`);
+  }
 }

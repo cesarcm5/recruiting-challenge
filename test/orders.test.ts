@@ -23,7 +23,7 @@ test('orders DAL: create + listByMerchant returns the order', () => {
   assert.equal(list[0]!.total_amount, 5000);
 });
 
-test('orders DAL: getById returns the order', () => {
+test('orders DAL: getById returns the order for the owning merchant', () => {
   initSchema();
   db.prepare(`INSERT OR IGNORE INTO merchants (id, name) VALUES ('m_test', 'Test')`).run();
   ordersDal.create({
@@ -34,6 +34,22 @@ test('orders DAL: getById returns the order', () => {
     type: 'sale',
     status: 'completed',
   });
-  const got = ordersDal.getById('o2');
+  const got = ordersDal.getById('o2', 'm_test');
   assert.equal(got?.total_amount, 1200);
+});
+
+test('orders DAL: getById is tenant-scoped — a different merchant cannot read the order', () => {
+  initSchema();
+  db.prepare(`INSERT OR IGNORE INTO merchants (id, name) VALUES ('m_owner', 'Owner')`).run();
+  db.prepare(`INSERT OR IGNORE INTO merchants (id, name) VALUES ('m_other', 'Other')`).run();
+  ordersDal.create({
+    id: 'o_secret',
+    merchant_id: 'm_owner',
+    customer_email: 'secret@x.com',
+    total_amount: 9999,
+    type: 'sale',
+    status: 'completed',
+  });
+  assert.equal(ordersDal.getById('o_secret', 'm_owner')?.total_amount, 9999);
+  assert.equal(ordersDal.getById('o_secret', 'm_other'), undefined);
 });
