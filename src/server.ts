@@ -1,6 +1,7 @@
 import express from 'express';
 import { initSchema } from './db.js';
 import { authMiddleware } from './auth.js';
+import { authRouter } from './routes/auth.js';
 import { ordersRouter } from './routes/orders.js';
 import { revenueRouter } from './routes/revenue.js';
 import { metricsRouter } from './routes/metrics.js';
@@ -19,6 +20,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/orders', authMiddleware, ordersRouter);
 app.use('/api/revenue', authMiddleware, revenueRouter);
 app.use('/api/metrics', authMiddleware, metricsRouter);

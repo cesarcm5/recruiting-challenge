@@ -8,7 +8,8 @@
       :root { color-scheme: light dark; }
       body { font-family: system-ui, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
       h1 { margin-bottom: 0.25rem; }
-      .merchant-picker { margin-bottom: 1rem; }
+      .session { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+      .session button { font: inherit; padding: 0.25rem 0.75rem; cursor: pointer; }
       .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1rem 0; }
       .card { border: 1px solid #ccc4; border-radius: 8px; padding: 1rem; }
       .card .label { font-size: 0.85rem; opacity: 0.7; }
@@ -23,13 +24,9 @@
     <h1>Merchant Dashboard</h1>
     <p class="muted">Tiny demo dashboard backed by the local API.</p>
 
-    <div class="merchant-picker">
-      <label>Logged in as:
-        <select id="merchant-select">
-          <option value="m_acme">Acme Supplies</option>
-          <option value="m_bistro">Bistro Verde</option>
-        </select>
-      </label>
+    <div class="session">
+      <span>Logged in as <strong id="merchant-name">—</strong></span>
+      <button type="button" id="logout">Log out</button>
     </div>
 
     <section>

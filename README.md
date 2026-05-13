@@ -40,7 +40,16 @@ The database is SQLite, kept in `data/dashboard.db`. The first run seeds two mer
 npm test     # run the (intentionally thin) test suite
 ```
 
-To switch between the two seeded merchants in the dashboard, use the selector at the top of the page. Behind the scenes the client sends an `X-Merchant-Id` header on every API request — see `src/auth.ts`.
+The dashboard authenticates with JWT bearer tokens. Open <http://localhost:3000/login.html>
+(or hit `/` and you'll be redirected) and sign in with one of the seeded merchants:
+
+- `m_acme` / `acme-dev-password`
+- `m_bistro` / `bistro-dev-password`
+
+The client stores the token in `localStorage` and sends `Authorization: Bearer <token>`
+on every API request — see `src/auth.ts` and `src/routes/auth.ts`. Set `JWT_SECRET` in
+the environment to keep tokens stable across restarts (the server generates an ephemeral
+random secret and warns on the console if it's missing).
 
 ---
 

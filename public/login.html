@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sign in — Merchant Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: light dark; }
+      body { font-family: system-ui, sans-serif; max-width: 360px; margin: 4rem auto; padding: 0 1rem; }
+      h1 { margin-bottom: 1rem; }
+      label { display: block; margin-bottom: 0.75rem; }
+      input { width: 100%; padding: 0.5rem; font: inherit; box-sizing: border-box; }
+      button { padding: 0.5rem 1rem; font: inherit; cursor: pointer; }
+      .error { color: #c33; margin-top: 0.75rem; min-height: 1.2em; }
+      .hint { font-size: 0.85rem; opacity: 0.7; margin-top: 1.5rem; }
+      .hint code { background: #8881; padding: 0 0.25rem; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <h1>Sign in</h1>
+    <form id="login-form" autocomplete="on">
+      <label>Merchant ID
+        <input type="text" id="merchant-id" name="merchant_id" required autocomplete="username" />
+      </label>
+      <label>Password
+        <input type="password" id="password" name="password" required autocomplete="current-password" />
+      </label>
+      <button type="submit">Sign in</button>
+      <div class="error" id="error" role="alert"></div>
+    </form>
+    <p class="hint">
+      Dev seed credentials: <code>m_acme</code> / <code>acme-dev-password</code>,
+      <code>m_bistro</code> / <code>bistro-dev-password</code>.
+    </p>
+    <script src="/login.js"></script>
+  </body>
+</html>

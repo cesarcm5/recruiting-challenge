@@ -1,9 +1,11 @@
 import { db, initSchema } from '../db.js';
 import { randomUUID } from 'node:crypto';
+import { hashPassword } from '../passwords.js';
+import { merchantsDal } from '../dal/merchants-dal.js';
 
 const MERCHANTS = [
-  { id: 'm_acme', name: 'Acme Supplies' },
-  { id: 'm_bistro', name: 'Bistro Verde' },
+  { id: 'm_acme', name: 'Acme Supplies', password: 'acme-dev-password' },
+  { id: 'm_bistro', name: 'Bistro Verde', password: 'bistro-dev-password' },
 ];
 
 const CUSTOMERS = [
@@ -23,13 +25,20 @@ function randomDateInLast90Days(): string {
 
 export function seedIfEmpty(): void {
   initSchema();
-  const existing = db.prepare(`SELECT COUNT(*) AS n FROM orders`).get() as { n: number };
-  if (existing.n > 0) return;
 
   const insertMerchant = db.prepare(
     `INSERT OR IGNORE INTO merchants (id, name) VALUES (?, ?)`,
   );
-  for (const m of MERCHANTS) insertMerchant.run(m.id, m.name);
+  for (const m of MERCHANTS) {
+    insertMerchant.run(m.id, m.name);
+    const existing = merchantsDal.getById(m.id);
+    if (existing && !existing.password_hash) {
+      merchantsDal.setPasswordHash(m.id, hashPassword(m.password));
+    }
+  }
+
+  const existingOrders = db.prepare(`SELECT COUNT(*) AS n FROM orders`).get() as { n: number };
+  if (existingOrders.n > 0) return;
 
   const insertOrder = db.prepare(
     `INSERT INTO orders (id, merchant_id, customer_email, total_amount, type, status, created_at)
