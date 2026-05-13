@@ -42,7 +42,10 @@ No auth. Returns `{ ok: true }`.
 List orders for the authenticated merchant. Optional query: `from`, `to`, `limit`.
 
 ## `GET /api/orders/:id`
-Get a single order by ID.
+Get a single order by ID. **Tenant-scoped**: returns `404 not_found` both when the
+order does not exist *and* when it belongs to another merchant. The two cases are
+intentionally indistinguishable so the endpoint cannot be used as an existence
+oracle across tenants.
 
 ## `POST /api/orders`
 Body: `{ customer_email, total_amount, type? }`.
