@@ -6,10 +6,12 @@ import { ordersRouter } from './routes/orders.js';
 import { revenueRouter } from './routes/revenue.js';
 import { metricsRouter } from './routes/metrics.js';
 import { webhookSubscriptionsRouter } from './routes/webhook-subscriptions.js';
+import { start as startWebhookDispatcher } from './webhooks/dispatcher.js';
 import { seedIfEmpty } from './scripts/seed.js';
 
 initSchema();
 seedIfEmpty();
+startWebhookDispatcher();
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 3000);
