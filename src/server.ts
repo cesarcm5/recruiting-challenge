@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth.js';
 import { ordersRouter } from './routes/orders.js';
 import { revenueRouter } from './routes/revenue.js';
 import { metricsRouter } from './routes/metrics.js';
+import { webhookSubscriptionsRouter } from './routes/webhook-subscriptions.js';
 import { seedIfEmpty } from './scripts/seed.js';
 
 initSchema();
@@ -24,6 +25,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/orders', authMiddleware, ordersRouter);
 app.use('/api/revenue', authMiddleware, revenueRouter);
 app.use('/api/metrics', authMiddleware, metricsRouter);
+app.use('/api/webhook-subscriptions', authMiddleware, webhookSubscriptionsRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
